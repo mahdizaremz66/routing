@@ -1,26 +1,49 @@
-import React from 'react'
-import { Route, Routes } from 'react-router-dom';
-import Book from './components/book';
-import Articel from './components/articel';
+import React, { useState } from 'react';
+import { Route, Routes, useNavigate } from 'react-router-dom';
+
+import PrivateRoute from './components/privateRoute';
+import AppContext from './context/appContext';
+import LoginForm from './components/loginForm';
 import Home from './components/home';
+import Book from './components/book';
 import BookInfo from './components/bookInfo';
-import NotFound from './components/notFound';
 
 const App = () => {
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
+
+  const login = (username, password) => {
+    if (username === "user1" && password === "123") {
+      setUser({ username, password })
+      return { message: "Success login ..." }
+    }
+    else {
+      return { erroe: "Invalid username or password!" }
+    }
+  }
+
+  const logout = () => {
+    setUser(null);
+    navigate("/login");
+  }
+
   return (
-    <div>
-      <h1>APP..</h1>
+    <AppContext.Provider value={{ user, login, logout }}>
+      <div>
+        <Routes>
+          <Route path='/' element={
+            <PrivateRoute>
+              <Home />
+            </PrivateRoute>} />
+          <Route path="book/*" element={ <PrivateRoute><Book /></PrivateRoute>}>
+            <Route path=":id/:title" elemnt={<PrivateRoute><BookInfo /></PrivateRoute>}></Route>
+          </Route>
 
-      <Routes>
-        <Route path="/" element={<Home />} />
-        <Route path="book" element={<Book />}>
-          <Route path=":id/:title" element={<BookInfo />} />
-        </Route>
-        <Route path="articel" element={<Articel />} />
-        <Route path="*" element={<NotFound />} />
-      </Routes>
-    </div>
-  );
+          <Route path="login" element={<LoginForm />} />
+        </Routes>
+      </div>
+      </AppContext.Provider>
+      )
+
 }
-
-export default App;
+      export default App;
